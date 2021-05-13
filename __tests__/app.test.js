@@ -1,116 +1,76 @@
-import app from '../lib/app.js';
 import supertest from 'supertest';
-import client from '../lib/client.js';
-import { execSync } from 'child_process';
+import { geo } from '../data/geo-data.js';
+import { weather } from '../data/weather-data.js';
+import { yelp } from '../data/yelp-data.js';
+import {
+  formatLocation,
+  formatWeather,
+  formatYelp
+} from '../lib/munge-utils.js';
 
-const request = supertest(app);
+describe('API Data Munging', () => {
 
-describe('API Routes', () => {
+  const expectedGeo =
+  {
+    'formatted_query': 'Portland, Multnomah County, Oregon, USA',
+    'latitude': '45.5202471',
+    'longitude': '-122.6741949',
+  };
 
-  beforeAll(() => {
-    execSync('npm run setup-db');
+  it('munges location data', async () => {
+    const output = formatLocation(geo);
+
+    expect(output).toEqual(expectedGeo);
   });
 
-  afterAll(async () => {
-    return client.end();
-  });
-
-  const expectedCats = [
+  const expectedWeather = [
     {
-      id: expect.any(Number),
-      name: 'Felix',
-      type: 'Tuxedo',
-      url: 'cats/felix.png',
-      year: 1892,
-      lives: 3,
-      isSidekick: false
+      'forecast': 'Broken clouds',
+      'time': '2021-05-12'
     },
     {
-      id: expect.any(Number),
-      name: 'Garfield',
-      type: 'Orange Tabby',
-      url: 'cats/garfield.jpeg',
-      year: 1978,
-      lives: 7,
-      isSidekick: false
+      'forecast': 'Few clouds',
+      'time': '2021-05-13'
     },
     {
-      id: expect.any(Number),
-      name: 'Duchess',
-      type: 'Angora',
-      url: 'cats/duchess.jpeg',
-      year: 1970,
-      lives: 9,
-      isSidekick: false
+      'forecast': 'Scattered clouds',
+      'time': '2021-05-14'
     },
-    {
-      id: expect.any(Number),
-      name: 'Stimpy',
-      type: 'Manx',
-      url: 'cats/stimpy.jpeg',
-      year: 1990,
-      lives: 1,
-      isSidekick: true
-    },
-    {
-      id: expect.any(Number),
-      name: 'Sylvester',
-      type: 'Tuxedo',
-      url: 'cats/sylvester.jpeg',
-      year: 1945,
-      lives: 1,
-      isSidekick: true
-    },
-    {
-      id: expect.any(Number),
-      name: 'Tigger',
-      type: 'Orange Tabby',
-      url: 'cats/tigger.jpeg',
-      year: 1928,
-      lives: 8,
-      isSidekick: false
-    },
-    {
-      id: expect.any(Number),
-      name: 'Hello Kitty',
-      type: 'Angora',
-      url: 'cats/hello-kitty.jpeg',
-      year: 1974,
-      lives: 9,
-      isSidekick: false
-    },
-    {
-      id: expect.any(Number),
-      name: 'Hobbs',
-      type: 'Orange Tabby',
-      url: 'cats/hobbs.jpeg',
-      year: 1985,
-      lives: 6,
-      isSidekick: true
-    }
   ];
 
-  // If a GET request is made to /api/cats, does:
-  // 1) the server respond with status of 200
-  // 2) the body match the expected API data?
-  it('GET /api/cats', async () => {
-    // act - make the request
-    const response = await request.get('/api/cats');
+  it('munges weather data', async () => {
+    const output = formatWeather(weather);
 
-    // was response OK (200)?
-    expect(response.status).toBe(200);
-
-    // did it return the data we expected?
-    expect(response.body).toEqual(expectedCats);
-
+    expect(output).toEqual(expectedWeather);
   });
 
-  // If a GET request is made to /api/cats/:id, does:
-  // 1) the server respond with status of 200
-  // 2) the body match the expected API data for the cat with that id?
-  test('GET /api/cats/:id', async () => {
-    const response = await request.get('/api/cats/2');
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual(expectedCats[1]);
+  const expectedYelp = [
+    {
+      'name': 'Andina Restaurant',
+      'image_url': 'https://s3-media1.fl.yelpcdn.com/bphoto/Ij9yv97Ch6NwKhNdpezRhw/o.jpg',
+      'price': '$$$',
+      'rating': 4.5,
+      'url': 'https://www.yelp.com/biz/andina-restaurant-portland?adjust_creative=8hD_k9qlFe5AIAhZvQpRdw&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=8hD_k9qlFe5AIAhZvQpRdw'
+    },
+    {
+      'name': 'Lechon',
+      'image_url': 'https://s3-media1.fl.yelpcdn.com/bphoto/1sE02Y1glmOvdRA54VIlYA/o.jpg',
+      'price': '$$',
+      'rating': 4.5,
+      'url': 'https://www.yelp.com/biz/lechon-portland?adjust_creative=8hD_k9qlFe5AIAhZvQpRdw&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=8hD_k9qlFe5AIAhZvQpRdw'
+    },
+    {
+      'name': 'Luc Lac',
+      'image_url': 'https://s3-media1.fl.yelpcdn.com/bphoto/azr6sD6VeJbdaiO2aKvSsw/o.jpg',
+      'price': '$$',
+      'rating': 4.0,
+      'url': 'https://www.yelp.com/biz/luc-lac-portland-7?adjust_creative=8hD_k9qlFe5AIAhZvQpRdw&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=8hD_k9qlFe5AIAhZvQpRdw'
+    },
+  ];
+
+  it('munges Yelp data', async () => {
+    const output = formatYelp(yelp);
+
+    expect(output).toEqual(expectedYelp);
   });
 });
