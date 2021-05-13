@@ -1,9 +1,9 @@
 import supertest from 'supertest';
+import { geo } from '../data/geo-data.js';
+import { weather } from '../data/weather-data.js';
 import {
-  geo
-} from '../data/geo-data.js';
-import {
-  formatLocation
+  formatLocation,
+  formatWeather
 } from '../lib/munge-utils.js';
 
 describe('API Data Munging', () => {
@@ -30,5 +30,26 @@ describe('API Data Munging', () => {
     const output = formatLocation(geo);
 
     expect(output).toEqual(expectedGeo);
+  });
+
+  const expectedWeather = [
+    {
+      'forecast': 'Broken clouds',
+      'time': '2021-05-12'
+    },
+    {
+      'forecast': 'Few clouds',
+      'time': '2021-05-13'
+    },
+    {
+      'forecast': 'Scattered clouds',
+      'time': '2021-05-14'
+    },
+  ];
+
+  it('munges weather data', async () => {
+    const output = formatWeather(weather);
+
+    expect(output).toEqual(expectedWeather);
   });
 });
